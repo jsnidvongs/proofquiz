@@ -235,6 +235,7 @@ let state = {
   scores: [],
   loading: false,
   error: '',
+  scoresError: '',
   showSettings: false,
 
   solo: { name:'', newName:'', addingNew:false, catId:'all', queue:[], idx:0, score:0, answered:false, picked:null, history:[] },
@@ -275,7 +276,12 @@ async function loadQuestions(){
   catch(e){ setState({ loading:false, error:"Couldn't load questions. Check the connection in Settings." }); }
 }
 async function loadScores(){
-  try{ const sc = await apiGet('scores'); setState({ scores:sc }); } catch(e){}
+  try{
+    const sc = await apiGet('scores');
+    setState({ scores: Array.isArray(sc) ? sc : [], scoresError:'' });
+  } catch(e){
+    setState({ scoresError:"Couldn't load the leaderboard. Check the connection in Settings." });
+  }
 }
 
 /* ============================= HELPERS ============================= */
@@ -459,7 +465,7 @@ function catCardsMarkup(selectedId, onclickFn){
 
 function screenSoloSetup(){
   applyTheme('--all','--all-ink');
-  const names = [...new Set(state.scores.map(s=>s.name))].sort((a,b)=>a.localeCompare(b));
+  const names = [...new Set((Array.isArray(state.scores)?state.scores:[]).map(s=>s.name))].sort((a,b)=>a.localeCompare(b));
   return el(`<div class="screen">
     <div class="corner-logo"><img class="logo-img" src="${LOGO_SRC}" alt="Choeng Doi Distillery"></div>
     <div class="home-head"><div class="brand"><div class="brand-eyebrow">SOLO QUIZ</div><h1 class="display brand-title" style="font-size:40px;">WHO'S<br/>PLAYING?</h1></div>${iconGear()}</div>
@@ -508,18 +514,17 @@ function soloNewNameInputChanged(v){
 
 function screenSoloPlay(){
   const s = state.solo;
-  const catMeta = catMetaById(s.catId);
-  applyTheme(catMeta.color, catMeta.ink);
   const q = s.queue[s.idx];
   if(!q) return el(`<div class="screen"><div class="loading">No questions available in this category.</div></div>`);
   const qCatMeta = getCategoryMeta(q.category);
+  applyTheme(qCatMeta.color, qCatMeta.ink);
   const answers = buildAnswers(q);
   return el(`<div class="play-screen">
     <div class="play-top">
       <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
       <div class="score-strip" style="padding:0;"><b>${s.score}</b> pt${s.score===1?'':'s'}</div>
     </div>
-    <div class="timer-wrap"><div class="timer">${s.idx+1} / ${s.queue.length}</div></div>
+    <div class="timer-wrap"><div class="timer">${esc(s.name).toUpperCase()} · ${s.idx+1} / ${s.queue.length}</div></div>
     <div class="word-stage">
       <div class="ticket">
         <div class="ticket-tag">${qCatMeta.emoji} ${esc(q.difficulty).toUpperCase()}</div>
@@ -597,11 +602,10 @@ function screenGroupReady(){
 
 function screenGroupPlay(){
   const g = state.group;
-  const catMeta = catMetaById(g.catId);
-  applyTheme(catMeta.color, catMeta.ink);
   const q = g.queue[g.idx];
   if(!q) return el(`<div class="screen"><div class="loading">No questions available.</div></div>`);
   const qCatMeta = getCategoryMeta(q.category);
+  applyTheme(qCatMeta.color, qCatMeta.ink);
   const answers = buildAnswers(q);
   const urgent = g.timeLeft <= 10;
   return el(`<div class="play-screen">
@@ -663,13 +667,14 @@ function screenGroupResult(){
 function screenLeaderboard(){
   applyTheme('--all','--all-ink');
   loadScores();
-  const sorted = [...state.scores].sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));
+  const sorted = (Array.isArray(state.scores) ? [...state.scores] : []).sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));
   return el(`<div class="screen">
     <div class="corner-logo"><img class="logo-img" src="${LOGO_SRC}" alt="Choeng Doi Distillery"></div>
     <div class="home-head"><div class="brand"><div class="brand-eyebrow">LEADERBOARD</div><h1 class="display brand-title" style="font-size:40px;">TEAM<br/>POINTS</h1></div>${iconGear()}</div>
     ${backRow('home')}
     <div class="brand-sub">Solo quiz points, synced from the shared training sheet.</div>
-    ${sorted.length===0 ? `<div class="empty-state">No scores yet. Be the first to play a solo quiz!</div>` :
+    ${state.scoresError ? `<div class="banner">${state.scoresError}</div>` : ''}
+    ${sorted.length===0 && !state.scoresError ? `<div class="empty-state">No scores yet. Be the first to play a solo quiz!</div>` :
       `<div class="list-wrap">${sorted.map((s,i)=>`<div class="lb-row"><div class="lb-rank">${i+1}</div><div class="lb-name">${esc(s.name)}</div><div class="lb-pts">${s.points||0}</div></div>`).join('')}</div>`}
   </div>`);
 }
