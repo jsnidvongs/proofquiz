@@ -300,9 +300,10 @@ function startSolo(){
   const queue = p.slice(0, Math.min(SOLO_QUESTION_COUNT, p.length));
   setState({ screen:'solo-play', solo:{ ...state.solo, name, queue, idx:0, score:0, answered:false, picked:null, history:[] } });
 }
-function soloPick(opt){
+function soloPick(idx){
   if(state.solo.answered) return;
   const q = state.solo.queue[state.solo.idx];
+  const opt = buildAnswers(q)[idx];
   const correct = opt === q.correct_en;
   if(correct) sndCorrect(); else sndWrong();
   const h = state.solo.history.concat([{ t: q.correct_en, correct }]);
@@ -341,9 +342,10 @@ function beginGroupRound(){
   }, 1000);
   state.group.timerId = id;
 }
-function groupPick(opt){
+function groupPick(idx){
   if(state.group.answered) return;
   const q = state.group.queue[state.group.idx];
+  const opt = buildAnswers(q)[idx];
   const correct = opt === q.correct_en;
   if(correct) sndCorrect(); else sndWrong();
   const h = state.group.history.concat([{ t:q.correct_en, correct }]);
@@ -525,10 +527,10 @@ function screenSoloPlay(){
       </div>
     </div>
     <div class="answers">
-      ${answers.map(a=>{
+      ${answers.map((a,i)=>{
         let cls='ans-btn';
         if(s.answered){ if(a===q.correct_en) cls+=' correct'; else if(a===s.picked) cls+=' incorrect'; else cls+=' dim'; }
-        return `<button class="${cls}" ${s.answered?'disabled':''} onclick="soloPick(${JSON.stringify(a)})">${esc(a)}</button>`;
+        return `<button class="${cls}" ${s.answered?'disabled':''} onclick="soloPick(${i})">${esc(a)}</button>`;
       }).join('')}
     </div>
     ${s.answered ? `<div class="next-row"><button class="cta themed" onclick="soloNext()">${s.idx+1>=s.queue.length?'SEE RESULTS':'NEXT QUESTION'}</button></div>` : ''}
@@ -615,10 +617,10 @@ function screenGroupPlay(){
       </div>
     </div>
     <div class="answers">
-      ${answers.map(a=>{
+      ${answers.map((a,i)=>{
         let cls='ans-btn';
         if(g.answered){ if(a===q.correct_en) cls+=' correct'; else if(a===g.picked) cls+=' incorrect'; else cls+=' dim'; }
-        return `<button class="${cls}" ${g.answered?'disabled':''} onclick="groupPick(${JSON.stringify(a)})">${esc(a)}</button>`;
+        return `<button class="${cls}" ${g.answered?'disabled':''} onclick="groupPick(${i})">${esc(a)}</button>`;
       }).join('')}
     </div>
     ${g.answered ? `<div class="next-row"><button class="cta themed" onclick="groupNext()">NEXT QUESTION</button></div>` : ''}
