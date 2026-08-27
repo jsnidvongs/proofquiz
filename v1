@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PROOF — Choeng Doi Distillery Internal Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@500;600;700;800&family=Noto+Serif+Thai:wght@500;600;700&display=swap">
+<style>
+  :root{
+    --ink:#15121a;
+    --ink-2:#1c1822;
+    --surface:#241f2c;
+    --surface-2:#2c2635;
+    --cream:#f6f0e6;
+    --cream-dim:#cabfd4;
+    --muted:#8c8298;
+    --line:rgba(246,240,230,0.09);
+    --all:#ff6a45;
+    --all-ink:#3a1206;
+    --spirits:#c9752b;
+    --spirits-ink:#2a1404;
+    --cocktails:#ff4f8b;
+    --cocktails-ink:#3a0518;
+    --distillation:#14b8a6;
+    --distillation-ink:#04211d;
+    --solo:#3f8bff;
+    --solo-ink:#071633;
+    --group:#49ab8a;
+    --group-ink:#04241a;
+    --card-color: var(--all);
+    --card-ink: var(--all-ink);
+    --good:#57d18b;
+    --bad:#ff5a6e;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(255,255,255,0.05), transparent 45%),
+      var(--ink);
+    color:var(--cream);
+    font-family:'Manrope',sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{ min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
+  .display{ font-family:'Bebas Neue','Manrope',sans-serif; letter-spacing:0.02em; line-height:0.92; text-transform:uppercase; }
+  .th{ font-family:'Noto Serif Thai',serif; text-transform:none; letter-spacing:0; }
+  button{ font-family:inherit; border:none; cursor:pointer; -webkit-user-select:none; user-select:none; background:none; }
+  button:focus-visible, .selectable:focus-visible{ outline:3px solid var(--cream); outline-offset:3px; }
+
+  .screen{ flex:1; display:flex; flex-direction:column; width:100%; max-width:640px; margin:0 auto; padding:calc(22px + var(--safe-top)) 20px calc(22px + var(--safe-bottom)); }
+  .home-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px;}
+  .brand{ display:flex; flex-direction:column; }
+  .brand-eyebrow{ font-size:12px; font-weight:800; letter-spacing:0.22em; color:var(--muted); margin-bottom:6px;}
+  .brand-title{ font-size:56px; margin:0; }
+  .brand-title span{ color:var(--all); }
+  .brand-sub{ color:var(--cream-dim); font-size:15px; margin-top:8px; max-width:38ch; line-height:1.45;}
+  .icon-btn{ width:46px; height:46px; border-radius:50%; background:var(--surface); color:var(--cream); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; border:1px solid var(--line);}
+  .icon-btn:active{ transform:scale(0.94); }
+
+  .section-label{ font-size:12px; font-weight:800; letter-spacing:0.18em; color:var(--muted); margin:26px 0 12px; display:flex; align-items:center; gap:8px;}
+
+  /* mode / category cards */
+  .cat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .cat-grid.modes{ grid-template-columns:1fr; }
+  .cat-card{
+    position:relative; background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:18px 16px 16px; text-align:left; min-height:112px; display:flex; flex-direction:column;
+    justify-content:space-between; transition:transform 0.14s ease, background 0.18s ease, border-color 0.18s ease;
+    color:var(--cream);
+  }
+  .cat-card:active{ transform:scale(0.97); }
+  .cat-card .emoji{ font-size:26px; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)); }
+  .cat-card .name{ font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.02em; margin-top:10px; text-transform:uppercase; line-height:1;}
+  .cat-card .count{ font-size:11px; color:var(--muted); margin-top:4px; font-weight:700;}
+  .cat-card.selected{ border-color:transparent; background:var(--card-color); color:var(--card-ink); box-shadow:0 10px 24px -10px var(--card-color); }
+  .cat-card.selected .count{ color:var(--card-ink); opacity:0.65; }
+  .cat-card.selected::after{ content:"✓"; position:absolute; top:12px; right:12px; width:22px; height:22px; border-radius:50%; background:var(--card-ink); color:var(--card-color); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+
+  .text-input, select.text-input{ width:100%; padding:14px 16px; border-radius:12px; background:var(--ink-2); border:1px solid var(--line); color:var(--cream); font-family:inherit; font-size:16px; }
+  .text-input:focus-visible{ outline:2px solid var(--cream); }
+  .field{ margin-bottom:20px; }
+  .field-hint{ color:var(--muted); font-size:12px; margin-top:8px; line-height:1.4; }
+
+  .pill-row{ display:flex; gap:10px; }
+  .pill{ flex:1; background:var(--surface); border:1px solid var(--line); color:var(--cream-dim); border-radius:14px; padding:14px 8px; font-weight:800; font-size:16px; text-align:center; transition:all 0.15s ease; }
+  .pill.active{ background:var(--cream); color:var(--ink); border-color:var(--cream); }
+  .pill:active{ transform:scale(0.96); }
+
+  .cta{ margin-top:28px; width:100%; padding:20px; border-radius:18px; background:var(--all); color:var(--all-ink);
+    font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:0.04em; display:flex; align-items:center;
+    justify-content:center; gap:10px; transition:transform 0.12s ease, opacity 0.2s ease; box-shadow:0 14px 30px -12px var(--all); }
+  .cta:active{ transform:scale(0.97); }
+  .cta[disabled]{ opacity:0.35; box-shadow:none; pointer-events:none; }
+  .cta.ghost{ background:var(--surface); color:var(--cream); box-shadow:none; border:1px solid var(--line); }
+  .cta.outline{ background:transparent; border:2px solid var(--cream); color:var(--cream); box-shadow:none;}
+  .cta.themed{ background:var(--card-color); color:var(--card-ink); box-shadow:0 14px 30px -12px var(--card-color); }
+
+  .home-foot{ margin-top:auto; padding-top:24px; text-align:center; color:var(--muted); font-size:12px; letter-spacing:0.04em;}
+  .link-btn{ background:none; color:var(--cream-dim); font-family:'Manrope',sans-serif; font-weight:800; font-size:13px; letter-spacing:0.06em; text-decoration:underline; padding:8px; }
+
+  .back-row{ margin-bottom:14px; }
+  .back-btn{ background:none; color:var(--muted); font-size:14px; font-weight:700; padding:4px 0; }
+  .back-btn:active{ color:var(--cream); }
+
+  /* modal */
+  .modal-veil{ position:fixed; inset:0; background:rgba(10,8,13,0.72); backdrop-filter:blur(3px); display:flex; align-items:flex-end; justify-content:center; z-index:40; animation:fadeIn 0.15s ease;}
+  @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+  .modal{ width:100%; max-width:640px; background:var(--surface); border-radius:24px 24px 0 0; padding:22px 20px calc(22px + var(--safe-bottom)); border:1px solid var(--line); border-bottom:none;}
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .modal-title{ font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:0.03em;}
+  .modal-row{ margin-bottom:20px;}
+  .modal-row-label{ font-size:13px; font-weight:800; color:var(--muted); letter-spacing:0.08em; margin-bottom:10px;}
+
+  /* ready screen */
+  .ready-screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 24px; background:var(--card-color); color:var(--card-ink); transition:background 0.3s ease;}
+  .ready-chip{ font-size:12px; font-weight:800; letter-spacing:0.16em; padding:8px 16px; border-radius:100px; background:rgba(0,0,0,0.14); margin-bottom:26px;}
+  .ready-title{ font-size:52px; margin:0 0 14px;}
+  .ready-sub{ font-size:16px; opacity:0.75; max-width:30ch; margin-bottom:44px; line-height:1.5; font-weight:600;}
+  .ready-ask{ font-size:15px; font-weight:800; opacity:0.7; margin-bottom:16px; letter-spacing:0.04em;}
+  .start-btn{ width:168px; height:168px; border-radius:50%; background:var(--card-ink); color:var(--card-color);
+    font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:0.06em; display:flex; align-items:center;
+    justify-content:center; box-shadow:0 20px 40px -14px rgba(0,0,0,0.5); }
+  .start-btn:active{ transform:scale(0.95); }
+  .ready-back{ margin-top:38px; background:none; color:var(--card-ink); opacity:0.55; font-size:13px; font-weight:700; text-decoration:underline; padding:8px;}
+
+  /* playing */
+  .play-screen{ flex:1; display:flex; flex-direction:column; background:var(--ink); position:relative; }
+  .play-top{ display:flex; align-items:center; justify-content:space-between; padding:calc(16px + var(--safe-top)) 18px 6px; }
+  .play-cat{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:800; letter-spacing:0.14em; color:var(--card-color); }
+  .play-cat .dot{ width:8px; height:8px; border-radius:50%; background:var(--card-color); }
+
+  .timer-wrap{ display:flex; justify-content:center; padding:6px 0 4px; }
+  .timer{ font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.04em; background:var(--surface); color:var(--cream);
+    padding:8px 22px; border-radius:100px; border:1px solid var(--line); min-width:88px; text-align:center; transition:all 0.2s ease;}
+  .timer.urgent{ background:var(--bad); color:#2a050a; animation:pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.08);} }
+
+  .score-strip{ text-align:center; font-size:12px; font-weight:700; color:var(--muted); padding-bottom:2px;}
+  .score-strip b{ color:var(--good); }
+
+  .word-stage{ display:flex; align-items:center; justify-content:center; padding:14px 24px 6px; }
+  .ticket{ position:relative; width:100%; max-width:520px; background:var(--surface); border-radius:26px; padding:32px 22px; text-align:center; border:1px solid var(--line); }
+  .ticket::before, .ticket::after{ content:""; position:absolute; top:50%; width:26px; height:26px; background:var(--ink); border-radius:50%; transform:translateY(-50%); }
+  .ticket::before{ left:-13px; } .ticket::after{ right:-13px; }
+  .ticket-tag{ position:absolute; top:16px; left:22px; font-size:11px; font-weight:800; letter-spacing:0.14em; color:var(--card-color);}
+  .word-text{ font-size:clamp(22px, 6.4vw, 30px); line-height:1.5; word-break:break-word; margin-top:14px; }
+
+  .answers{ display:flex; flex-direction:column; gap:10px; padding:16px 18px calc(20px + var(--safe-bottom)); }
+  .ans-btn{ padding:18px 18px; border-radius:16px; font-family:'Manrope',sans-serif; font-weight:700; font-size:16px;
+    text-align:left; background:var(--surface); color:var(--cream); border:1px solid var(--line); transition:transform .1s ease, background .15s ease, border-color .15s ease; }
+  .ans-btn:active{ transform:scale(0.98); }
+  .ans-btn.correct{ background:var(--good); color:#08281a; border-color:var(--good); }
+  .ans-btn.incorrect{ background:var(--bad); color:#2a050a; border-color:var(--bad); }
+  .ans-btn.dim{ opacity:0.4; }
+  .ans-btn:disabled{ pointer-events:none; }
+  .next-row{ padding:0 18px calc(20px + var(--safe-bottom)); }
+  .next-row .cta{ margin-top:0; }
+
+  /* time's up / exhausted */
+  .timeup-screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--ink); animation:flashBg 0.5s ease;}
+  @keyframes flashBg{ 0%{ background:var(--card-color);} 100%{ background:var(--ink);} }
+  .timeup-title{ font-size:60px; color:var(--cream); animation:pop 0.4s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes pop{ 0%{ transform:scale(0.5); opacity:0;} 60%{ transform:scale(1.12);} 100%{ transform:scale(1); opacity:1;} }
+
+  /* results */
+  .results-head{ text-align:center; padding-top:8px; }
+  .results-eyebrow{ font-size:12px; font-weight:800; letter-spacing:0.2em; color:var(--muted); }
+  .results-score{ font-family:'Bebas Neue',sans-serif; font-size:58px; color:var(--card-color); margin:6px 0 2px; }
+  .results-list{ margin-top:20px; border-radius:18px; background:var(--surface); border:1px solid var(--line); overflow:hidden; max-height:38vh; overflow-y:auto; }
+  .result-row{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--line); font-weight:700; font-size:15px; }
+  .result-row:last-child{ border-bottom:none; }
+  .result-row .mark{ width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0;}
+  .result-row.correct .mark{ background:rgba(87,209,139,0.18); color:var(--good);}
+  .result-row.skip .mark{ background:rgba(255,90,110,0.14); color:var(--bad);}
+  .result-row.skip span.w{ color:var(--muted); text-decoration:line-through; text-decoration-color:rgba(140,130,152,0.5); }
+  .results-actions{ margin-top:22px; display:flex; flex-direction:column; gap:10px; }
+  .row-2{ display:flex; gap:10px; }
+  .row-2 .cta{ margin-top:0; font-size:18px; padding:16px; }
+
+  /* leaderboard */
+  .lb-row{ display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .lb-row:last-child{ border-bottom:none; }
+  .lb-rank{ font-family:'Bebas Neue',sans-serif; color:var(--muted); width:26px; font-size:18px; }
+  .lb-name{ flex:1; font-size:15px; font-weight:700; }
+  .lb-pts{ font-family:'Bebas Neue',sans-serif; color:var(--all); font-size:20px; }
+  .list-wrap{ margin-top:8px; border-radius:18px; background:var(--surface); border:1px solid var(--line); overflow:hidden; }
+  .empty-state{ color:var(--muted); font-size:14px; text-align:center; margin-top:40px; }
+  .banner{ font-size:13px; color:var(--bad); background:rgba(255,90,110,0.12); border:1px solid var(--bad); padding:10px 14px; border-radius:12px; margin-bottom:16px; font-weight:700; }
+  .loading{ color:var(--muted); font-size:14px; text-align:center; margin-top:40px; font-weight:700; }
+
+  @media (min-width:560px){ .cat-grid{ grid-template-columns:1fr 1fr 1fr; } .brand-title{ font-size:64px; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================= CONFIG / DATA ============================= */
+const CONFIG_KEY = 'proof_quiz_script_url';
+const SOLO_QUESTION_COUNT = 10;
+
+const CATEGORIES = [
+  { id:'distillation', name:'Distillation & Fermentation', emoji:'⚗️', color:'--distillation', ink:'--distillation-ink' },
+  { id:'spirits', name:'Spirits', emoji:'🥃', color:'--spirits', ink:'--spirits-ink' },
+  { id:'cocktails', name:'Cocktails', emoji:'🍸', color:'--cocktails', ink:'--cocktails-ink' }
+];
+const ALL_CAT = { id:'all', name:'All Categories', emoji:'🎯', color:'--all', ink:'--all-ink' };
+
+function getCategoryMeta(name){
+  return CATEGORIES.find(c => c.name === name) || ALL_CAT;
+}
+function colorValue(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+function applyTheme(colorVar, inkVar){
+  document.documentElement.style.setProperty('--card-color', colorValue(colorVar));
+  document.documentElement.style.setProperty('--card-ink', colorValue(inkVar));
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+let state = {
+  screen: 'home',
+  scriptUrl: localStorage.getItem(CONFIG_KEY) || '',
+  questions: [],
+  scores: [],
+  loading: false,
+  error: '',
+  showSettings: false,
+
+  solo: { name:'', newName:'', catId:'all', queue:[], idx:0, score:0, answered:false, picked:null, history:[] },
+  group: { catId:'all', duration:90, queue:[], idx:0, score:0, answered:false, picked:null, history:[],
+           timeLeft:90, timerId:null, endReason:null }
+};
+function setState(patch){ state = { ...state, ...patch }; render(); }
+
+/* ============================= AUDIO ============================= */
+let actx;
+function audioCtx(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function beep(freq,dur,type='sine',gain=.22,delay=0){
+  try{
+    const ctx = audioCtx(); const osc = ctx.createOscillator(); const g = ctx.createGain();
+    osc.type=type; osc.frequency.value=freq; g.gain.value=gain;
+    osc.connect(g); g.connect(ctx.destination);
+    const t0 = ctx.currentTime + delay; osc.start(t0);
+    g.gain.setValueAtTime(gain,t0); g.gain.exponentialRampToValueAtTime(.001, t0+dur);
+    osc.stop(t0+dur+.02);
+  }catch(e){}
+}
+function sndCorrect(){ beep(660,.09,'triangle',.22,0); beep(880,.14,'triangle',.22,.08); }
+function sndWrong(){ beep(180,.22,'sawtooth',.18,0); }
+function sndTick(){ beep(1200,.05,'square',.08,0); }
+function sndTimeUp(){ beep(140,.35,'sawtooth',.2,0); }
+
+/* ============================= NETWORK ============================= */
+async function apiGet(action){
+  const res = await fetch(`${state.scriptUrl}?action=${action}`);
+  if(!res.ok) throw new Error('Network error');
+  return res.json();
+}
+async function apiPost(payload){ await fetch(state.scriptUrl, { method:'POST', body: JSON.stringify(payload) }); }
+
+async function loadQuestions(){
+  setState({ loading:true, error:'' });
+  try{ const qs = await apiGet('questions'); setState({ questions:qs, loading:false }); }
+  catch(e){ setState({ loading:false, error:"Couldn't load questions. Check the connection in Settings." }); }
+}
+async function loadScores(){
+  try{ const sc = await apiGet('scores'); setState({ scores:sc }); } catch(e){}
+}
+
+/* ============================= HELPERS ============================= */
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function poolFor(catId){
+  if(catId==='all') return state.questions;
+  const meta = CATEGORIES.find(c=>c.id===catId);
+  return state.questions.filter(q => q.category === meta.name);
+}
+function buildAnswers(q){ return q._answers || (q._answers = shuffle([q.correct_en,q.wrong1_en,q.wrong2_en,q.wrong3_en])); }
+function catMetaById(id){ return id==='all' ? ALL_CAT : CATEGORIES.find(c=>c.id===id); }
+
+/* ============================= SOLO FLOW ============================= */
+function startSolo(){
+  const name = state.solo.name || state.solo.newName.trim();
+  if(!name) return;
+  const p = shuffle(poolFor(state.solo.catId));
+  const queue = p.slice(0, Math.min(SOLO_QUESTION_COUNT, p.length));
+  setState({ screen:'solo-play', solo:{ ...state.solo, name, queue, idx:0, score:0, answered:false, picked:null, history:[] } });
+}
+function soloPick(opt){
+  if(state.solo.answered) return;
+  const q = state.solo.queue[state.solo.idx];
+  const correct = opt === q.correct_en;
+  if(correct) sndCorrect(); else sndWrong();
+  const h = state.solo.history.concat([{ t: q.correct_en, correct }]);
+  setState({ solo:{ ...state.solo, answered:true, picked:opt, score: state.solo.score+(correct?1:0), history:h } });
+}
+function soloNext(){
+  const nextIdx = state.solo.idx+1;
+  if(nextIdx >= state.solo.queue.length) finishSolo();
+  else setState({ solo:{ ...state.solo, idx:nextIdx, answered:false, picked:null } });
+}
+async function finishSolo(){
+  setState({ screen:'solo-result' });
+  try{ await apiPost({ name: state.solo.name, points: state.solo.score }); loadScores(); }catch(e){}
+}
+
+/* ============================= GROUP FLOW ============================= */
+function startGroupSetup(catId, duration){
+  const p = shuffle(poolFor(catId));
+  setState({ screen:'group-ready', group:{ ...state.group, catId, duration, queue:p, idx:0, score:0, answered:false, picked:null, history:[], timeLeft:duration } });
+}
+function beginGroupRound(){
+  const g = state.group;
+  setState({ screen:'group-play', group:{ ...g, timeLeft:g.duration } });
+  clearInterval(state.group.timerId);
+  const id = setInterval(()=>{
+    const t = state.group.timeLeft - 1;
+    if(t <= 0){
+      clearInterval(state.group.timerId);
+      sndTimeUp();
+      setState({ screen:'group-timeup', group:{ ...state.group, timeLeft:0, timerId:null, endReason:'time' } });
+      setTimeout(()=> setState({ screen:'group-result' }), 900);
+    } else {
+      if(t<=5) sndTick();
+      setState({ group:{ ...state.group, timeLeft:t } });
+    }
+  }, 1000);
+  state.group.timerId = id;
+}
+function groupPick(opt){
+  if(state.group.answered) return;
+  const q = state.group.queue[state.group.idx];
+  const correct = opt === q.correct_en;
+  if(correct) sndCorrect(); else sndWrong();
+  const h = state.group.history.concat([{ t:q.correct_en, correct }]);
+  setState({ group:{ ...state.group, answered:true, picked:opt, score: state.group.score+(correct?1:0), history:h } });
+}
+function groupNext(){
+  const g = state.group;
+  const nextIdx = g.idx+1;
+  if(nextIdx >= g.queue.length){
+    clearInterval(g.timerId);
+    setState({ screen:'group-timeup', group:{ ...g, timerId:null, endReason:'exhausted' } });
+    setTimeout(()=> setState({ screen:'group-result' }), 1400);
+  } else {
+    setState({ group:{ ...g, idx:nextIdx, answered:false, picked:null } });
+  }
+}
+
+/* ============================= RENDER ============================= */
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+function render(){
+  const root = document.getElementById('app');
+  root.innerHTML = '';
+  root.appendChild(buildScreen());
+  if(state.showSettings) root.appendChild(buildSettingsModal());
+}
+
+function iconGear(){ return `<button class="icon-btn" onclick="setState({showSettings:true})" aria-label="Settings">⚙</button>`; }
+
+function buildScreen(){
+  if(!state.scriptUrl){
+    applyTheme('--all','--all-ink');
+    return el(`<div class="screen">
+      <div class="home-head"><div class="brand"><div class="brand-eyebrow">ONE-TIME SETUP</div><h1 class="display brand-title">PROOF</h1></div></div>
+      <p class="brand-sub">Choeng Doi Distillery — internal training tool. This app reads questions and staff points from a Google Sheet. Paste the Apps Script Web App URL to connect it — see the setup guide that came with this file.</p>
+      <div class="field" style="margin-top:24px;">
+        <div class="section-label">APPS SCRIPT WEB APP URL</div>
+        <input class="text-input" type="text" id="setupUrl" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <button class="cta" onclick="saveUrlFromSetup()">CONNECT</button>
+    </div>`);
+  }
+  switch(state.screen){
+    case 'home': return screenHome();
+    case 'solo-setup': return screenSoloSetup();
+    case 'solo-play': return screenSoloPlay();
+    case 'solo-result': return screenSoloResult();
+    case 'group-setup': return screenGroupSetup();
+    case 'group-ready': return screenGroupReady();
+    case 'group-play': return screenGroupPlay();
+    case 'group-timeup': return screenGroupTimeup();
+    case 'group-result': return screenGroupResult();
+    case 'leaderboard': return screenLeaderboard();
+    default: return screenHome();
+  }
+}
+function saveUrlFromSetup(){
+  const v = document.getElementById('setupUrl').value.trim();
+  if(!v) return;
+  localStorage.setItem(CONFIG_KEY, v);
+  setState({ scriptUrl:v });
+  loadQuestions(); loadScores();
+}
+
+function screenHome(){
+  applyTheme('--all','--all-ink');
+  if(state.questions.length===0 && !state.loading && !state.error) loadQuestions();
+  if(state.scores.length===0) loadScores();
+  return el(`<div class="screen">
+    <div class="home-head">
+      <div class="brand">
+        <div class="brand-eyebrow">DISTILLERY STAFF TRAINING</div>
+        <h1 class="display brand-title">PROOF</h1>
+        <div class="brand-sub">Spirits, cocktails, and distillation knowledge. Earn points to trade for PTO and other perks.</div>
+      </div>
+      ${iconGear()}
+    </div>
+    ${state.error ? `<div class="banner" style="margin-top:20px;">${state.error}</div>` : ''}
+    <div class="section-label">CHOOSE A MODE</div>
+    <div class="cat-grid modes">
+      <button class="cat-card" style="--card-color:var(--solo);--card-ink:var(--solo-ink);" onclick="setState({screen:'solo-setup'})">
+        <span class="emoji">🎯</span>
+        <span><span class="name">SOLO QUIZ</span><br/><span class="count">Multiple choice · tracks your points</span></span>
+      </button>
+      <button class="cat-card" style="--card-color:var(--group);--card-ink:var(--group-ink);" onclick="setState({screen:'group-setup'})">
+        <span class="emoji">📱</span>
+        <span><span class="name">GROUP PASS &amp; PLAY</span><br/><span class="count">Timed round, pass the phone</span></span>
+      </button>
+    </div>
+    <div class="home-foot">
+      <button class="link-btn" onclick="setState({screen:'leaderboard'})">VIEW LEADERBOARD</button>
+      <div style="margin-top:14px; color:var(--muted); font-size:11px; letter-spacing:0.06em;">Choeng Doi Distillery — Internal Training Tool</div>
+    </div>
+  </div>`);
+}
+
+function backRow(target){ return `<div class="back-row"><button class="back-btn" onclick="setState({screen:'${target}'})">← Back</button></div>`; }
+
+function catCardsMarkup(selectedId, onclickFn){
+  const cards = [ALL_CAT, ...CATEGORIES];
+  return `<div class="cat-grid">` + cards.map(c=>{
+    const sel = selectedId === c.id;
+    const count = c.id==='all' ? state.questions.length : state.questions.filter(q=>q.category===c.name).length;
+    return `<button class="cat-card${sel?' selected':''}" style="--card-color:var(${c.color});--card-ink:var(${c.ink});" onclick="${onclickFn}('${c.id}')">
+      <span class="emoji">${c.emoji}</span>
+      <span><span class="name">${esc(c.name)}</span><br/><span class="count">${count} questions</span></span>
+    </button>`;
+  }).join('') + `</div>`;
+}
+
+function screenSoloSetup(){
+  applyTheme('--all','--all-ink');
+  const names = [...new Set(state.scores.map(s=>s.name))].sort((a,b)=>a.localeCompare(b));
+  return el(`<div class="screen">
+    <div class="home-head"><div class="brand"><div class="brand-eyebrow">SOLO QUIZ</div><h1 class="display brand-title" style="font-size:40px;">WHO'S<br/>PLAYING?</h1></div>${iconGear()}</div>
+    ${backRow('home')}
+    <div class="brand-sub">${SOLO_QUESTION_COUNT} questions · correct answers earn 1 point toward your total.</div>
+    ${state.loading ? `<div class="loading">Loading questions…</div>` : ''}
+    ${state.error ? `<div class="banner">${state.error}</div>` : ''}
+    <div class="section-label">YOUR NAME</div>
+    <select class="text-input" id="soloNameSelect" onchange="soloNameChanged(this.value)">
+      <option value="">— Select your name —</option>
+      ${names.map(n=>`<option value="${esc(n)}" ${state.solo.name===n?'selected':''}>${esc(n)}</option>`).join('')}
+      <option value="__new__">+ Add new name…</option>
+    </select>
+    <div id="newNameField"></div>
+    <div class="section-label">CATEGORY</div>
+    ${catCardsMarkup(state.solo.catId, 'soloSelectCat')}
+    <button class="cta" ${(!state.solo.name && !state.solo.newName.trim()) || state.questions.length===0 ? 'disabled':''} onclick="startSolo()">START QUIZ</button>
+  </div>`);
+}
+function soloSelectCat(id){ setState({ solo:{ ...state.solo, catId:id } }); }
+function soloNameChanged(v){
+  if(v==='__new__'){
+    setState({ solo:{ ...state.solo, name:'' } });
+    setTimeout(()=>{
+      const holder = document.getElementById('newNameField');
+      if(holder) holder.innerHTML = `<div class="field" style="margin-top:14px;"><input class="text-input" type="text" id="soloNewNameInput" placeholder="Type your name" value="${esc(state.solo.newName)}"></div>`;
+      const input = document.getElementById('soloNewNameInput');
+      if(input){ input.focus(); input.oninput = e => setState({ solo:{ ...state.solo, newName:e.target.value } }); }
+    },0);
+  } else {
+    setState({ solo:{ ...state.solo, name:v, newName:'' } });
+  }
+}
+
+function screenSoloPlay(){
+  const s = state.solo;
+  const catMeta = catMetaById(s.catId);
+  applyTheme(catMeta.color, catMeta.ink);
+  const q = s.queue[s.idx];
+  if(!q) return el(`<div class="screen"><div class="loading">No questions available in this category.</div></div>`);
+  const qCatMeta = getCategoryMeta(q.category);
+  const answers = buildAnswers(q);
+  return el(`<div class="play-screen">
+    <div class="play-top">
+      <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
+      <div class="score-strip" style="padding:0;"><b>${s.score}</b> pt${s.score===1?'':'s'}</div>
+    </div>
+    <div class="timer-wrap"><div class="timer">${s.idx+1} / ${s.queue.length}</div></div>
+    <div class="word-stage">
+      <div class="ticket">
+        <div class="ticket-tag">${qCatMeta.emoji} ${esc(q.difficulty).toUpperCase()}</div>
+        <div class="word-text th">${esc(q.question_th)}</div>
+      </div>
+    </div>
+    <div class="answers">
+      ${answers.map(a=>{
+        let cls='ans-btn';
+        if(s.answered){ if(a===q.correct_en) cls+=' correct'; else if(a===s.picked) cls+=' incorrect'; else cls+=' dim'; }
+        return `<button class="${cls}" ${s.answered?'disabled':''} onclick="soloPick(${JSON.stringify(a)})">${esc(a)}</button>`;
+      }).join('')}
+    </div>
+    ${s.answered ? `<div class="next-row"><button class="cta themed" onclick="soloNext()">${s.idx+1>=s.queue.length?'SEE RESULTS':'NEXT QUESTION'}</button></div>` : ''}
+  </div>`);
+}
+
+function screenSoloResult(){
+  const s = state.solo;
+  const catMeta = catMetaById(s.catId);
+  applyTheme(catMeta.color, catMeta.ink);
+  const rows = s.history.map(h => `<div class="result-row ${h.correct?'correct':'skip'}"><span class="mark">${h.correct?'✓':'✕'}</span><span class="w">${esc(h.t)}</span></div>`).join('')
+    || '<div class="result-row"><span class="w" style="color:var(--muted)">No questions answered.</span></div>';
+  return el(`<div class="screen">
+    <div class="results-head">
+      <div class="results-eyebrow">QUIZ COMPLETE</div>
+      <div class="results-score display">${s.score} / ${s.queue.length} CORRECT</div>
+      <div style="color:var(--muted);font-size:13px;font-weight:700;">Nice work, ${esc(s.name)}.</div>
+    </div>
+    <div class="results-list">${rows}</div>
+    <div class="results-actions">
+      <button class="cta themed" onclick="setState({screen:'solo-setup'})">PLAY AGAIN</button>
+      <div class="row-2">
+        <button class="cta ghost" onclick="setState({screen:'leaderboard'})">LEADERBOARD</button>
+        <button class="cta outline" onclick="setState({screen:'home'})">HOME</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function screenGroupSetup(){
+  applyTheme('--group','--group-ink');
+  const durations = [60,90,120];
+  const catId = state.group.catId, dur = state.group.duration;
+  return el(`<div class="screen">
+    <div class="home-head"><div class="brand"><div class="brand-eyebrow">GROUP PASS &amp; PLAY</div><h1 class="display brand-title" style="font-size:40px;">SET UP THE<br/>ROUND</h1></div>${iconGear()}</div>
+    ${backRow('home')}
+    <div class="brand-sub">Pass the phone between teammates. Answer as many as you can before time runs out.</div>
+    ${state.loading ? `<div class="loading">Loading questions…</div>` : ''}
+    <div class="section-label">CATEGORY</div>
+    ${catCardsMarkup(catId, 'groupSelectCat')}
+    <div class="section-label">ROUND LENGTH</div>
+    <div class="pill-row">
+      ${durations.map(d=>`<button class="pill ${dur===d?'active':''}" onclick="groupSelectDuration(${d})">${d}s</button>`).join('')}
+    </div>
+    <button class="cta" ${state.questions.length===0?'disabled':''} onclick="startGroupSetup(state.group.catId, state.group.duration)">START ROUND</button>
+  </div>`);
+}
+function groupSelectCat(id){ setState({ group:{ ...state.group, catId:id } }); }
+function groupSelectDuration(d){ setState({ group:{ ...state.group, duration:d } }); }
+
+function screenGroupReady(){
+  const catMeta = catMetaById(state.group.catId);
+  applyTheme(catMeta.color, catMeta.ink);
+  return el(`<div class="ready-screen">
+    <div class="ready-chip">${catMeta.emoji} ${esc(catMeta.name).toUpperCase()} · ${state.group.duration}S</div>
+    <h1 class="display ready-title">PASS THE<br/>PHONE</h1>
+    <div class="ready-sub">Give the phone to the next player. Get ready to answer as many as you can.</div>
+    <div class="ready-ask">PLAYER READY?</div>
+    <button class="start-btn display" onclick="beginGroupRound()">START</button>
+    <button class="ready-back" onclick="setState({screen:'group-setup'})">← Change setup</button>
+  </div>`);
+}
+
+function screenGroupPlay(){
+  const g = state.group;
+  const catMeta = catMetaById(g.catId);
+  applyTheme(catMeta.color, catMeta.ink);
+  const q = g.queue[g.idx];
+  if(!q) return el(`<div class="screen"><div class="loading">No questions available.</div></div>`);
+  const qCatMeta = getCategoryMeta(q.category);
+  const answers = buildAnswers(q);
+  const urgent = g.timeLeft <= 10;
+  return el(`<div class="play-screen">
+    <div class="play-top">
+      <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
+      <div class="score-strip" style="padding:0;"><b>${g.score}</b> correct</div>
+    </div>
+    <div class="timer-wrap"><div class="timer${urgent?' urgent':''}">0:${g.timeLeft<10?'0':''}${g.timeLeft}</div></div>
+    <div class="word-stage">
+      <div class="ticket">
+        <div class="ticket-tag">${qCatMeta.emoji} ${esc(q.difficulty).toUpperCase()}</div>
+        <div class="word-text th">${esc(q.question_th)}</div>
+      </div>
+    </div>
+    <div class="answers">
+      ${answers.map(a=>{
+        let cls='ans-btn';
+        if(g.answered){ if(a===q.correct_en) cls+=' correct'; else if(a===g.picked) cls+=' incorrect'; else cls+=' dim'; }
+        return `<button class="${cls}" ${g.answered?'disabled':''} onclick="groupPick(${JSON.stringify(a)})">${esc(a)}</button>`;
+      }).join('')}
+    </div>
+    ${g.answered ? `<div class="next-row"><button class="cta themed" onclick="groupNext()">NEXT QUESTION</button></div>` : ''}
+  </div>`);
+}
+
+function screenGroupTimeup(){
+  const catMeta = catMetaById(state.group.catId);
+  applyTheme(catMeta.color, catMeta.ink);
+  if(state.group.endReason === 'exhausted'){
+    return el(`<div class="timeup-screen"><div class="timeup-title display">ALL QUESTIONS USED!</div>
+      <div style="color:var(--cream-dim);font-weight:700;margin-top:14px;">You cleared the whole category</div></div>`);
+  }
+  return el(`<div class="timeup-screen"><div class="timeup-title display">TIME'S UP!</div></div>`);
+}
+
+function screenGroupResult(){
+  const g = state.group;
+  const catMeta = catMetaById(g.catId);
+  applyTheme(catMeta.color, catMeta.ink);
+  const rows = g.history.map(h => `<div class="result-row ${h.correct?'correct':'skip'}"><span class="mark">${h.correct?'✓':'✕'}</span><span class="w">${esc(h.t)}</span></div>`).join('')
+    || '<div class="result-row"><span class="w" style="color:var(--muted)">No questions answered this round.</span></div>';
+  return el(`<div class="screen">
+    <div class="results-head">
+      <div class="results-eyebrow">ROUND OVER</div>
+      <div class="results-score display">${g.score} CORRECT</div>
+      <div style="color:var(--muted);font-size:13px;font-weight:700;">${catMeta.emoji} ${esc(catMeta.name)} · ${g.duration}s round</div>
+    </div>
+    <div class="results-list">${rows}</div>
+    <div class="results-actions">
+      <button class="cta themed" onclick="startGroupSetup(state.group.catId, state.group.duration)">PLAY AGAIN</button>
+      <div class="row-2">
+        <button class="cta ghost" onclick="setState({screen:'group-setup'})">CHANGE SETUP</button>
+        <button class="cta outline" onclick="setState({screen:'home'})">HOME</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function screenLeaderboard(){
+  applyTheme('--all','--all-ink');
+  loadScores();
+  const sorted = [...state.scores].sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0));
+  return el(`<div class="screen">
+    <div class="home-head"><div class="brand"><div class="brand-eyebrow">LEADERBOARD</div><h1 class="display brand-title" style="font-size:40px;">TEAM<br/>POINTS</h1></div>${iconGear()}</div>
+    ${backRow('home')}
+    <div class="brand-sub">Solo quiz points, synced from the shared training sheet.</div>
+    ${sorted.length===0 ? `<div class="empty-state">No scores yet. Be the first to play a solo quiz!</div>` :
+      `<div class="list-wrap">${sorted.map((s,i)=>`<div class="lb-row"><div class="lb-rank">${i+1}</div><div class="lb-name">${esc(s.name)}</div><div class="lb-pts">${s.points||0}</div></div>`).join('')}</div>`}
+  </div>`);
+}
+
+function buildSettingsModal(){
+  return el(`<div class="modal-veil" onclick="if(event.target===this) setState({showSettings:false})">
+    <div class="modal">
+      <div class="modal-head"><div class="modal-title">SETTINGS</div><button class="icon-btn" onclick="setState({showSettings:false})">✕</button></div>
+      <div class="modal-row">
+        <div class="modal-row-label">APPS SCRIPT WEB APP URL</div>
+        <input class="text-input" type="text" id="settingsUrl" value="${esc(state.scriptUrl)}">
+        <div class="field-hint">Connects this app to your Google Sheet question bank and score log.</div>
+      </div>
+      <button class="cta" onclick="saveUrlFromSettings()">SAVE</button>
+    </div>
+  </div>`);
+}
+function saveUrlFromSettings(){
+  const v = document.getElementById('settingsUrl').value.trim();
+  localStorage.setItem(CONFIG_KEY, v);
+  setState({ scriptUrl:v, showSettings:false });
+  loadQuestions(); loadScores();
+}
+
+/* ============================= INIT ============================= */
+if(state.scriptUrl){ loadQuestions(); loadScores(); }
+render();
+</script>
+</body>
+</html>
