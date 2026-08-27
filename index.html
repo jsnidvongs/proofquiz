@@ -26,10 +26,6 @@
     --cocktails-ink:#3a0518;
     --distillation:#14b8a6;
     --distillation-ink:#04211d;
-    --solo:#3f8bff;
-    --solo-ink:#071633;
-    --group:#49ab8a;
-    --group-ink:#04241a;
     --card-color: var(--all);
     --card-ink: var(--all-ink);
     --good:#57d18b;
@@ -83,6 +79,12 @@
   .cat-card.selected{ border-color:transparent; background:var(--card-color); color:var(--card-ink); box-shadow:0 10px 24px -10px var(--card-color); }
   .cat-card.selected .count{ color:var(--card-ink); opacity:0.65; }
   .cat-card.selected::after{ content:"✓"; position:absolute; top:12px; right:12px; width:22px; height:22px; border-radius:50%; background:var(--card-ink); color:var(--card-color); font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .cat-card.mode-card{ min-height:96px; }
+  .cat-card.mode-card:active{ border-color:var(--all); }
+  .mode-arrow{ align-self:flex-end; font-size:20px; color:var(--all); font-weight:800; }
+  .cat-card.special{ border-style:dashed; }
+  .cat-card.special.selected{ background:var(--surface-2); color:var(--cream); border-color:var(--cream-dim); border-style:solid; box-shadow:none; }
+  .cat-card.special.selected::after{ background:var(--cream); color:var(--surface-2); }
 
   .text-input, select.text-input{ width:100%; padding:14px 16px; border-radius:12px; background:var(--ink-2); border:1px solid var(--line); color:var(--cream); font-family:inherit; font-size:16px; }
   .text-input:focus-visible{ outline:2px solid var(--cream); }
@@ -145,6 +147,8 @@
 
   .score-strip{ text-align:center; font-size:12px; font-weight:700; color:var(--muted); padding-bottom:2px;}
   .score-strip b{ color:var(--good); }
+  .exit-btn{ width:30px; height:30px; border-radius:50%; background:var(--surface); color:var(--cream-dim); font-size:14px; display:flex; align-items:center; justify-content:center; border:1px solid var(--line); flex-shrink:0; }
+  .exit-btn:active{ transform:scale(0.92); }
 
   .word-stage{ display:flex; align-items:center; justify-content:center; padding:14px 24px 6px; }
   .ticket{ position:relative; width:100%; max-width:520px; background:var(--surface); border-radius:26px; padding:32px 22px; text-align:center; border:1px solid var(--line); }
@@ -324,6 +328,10 @@ async function finishSolo(){
   setState({ screen:'solo-result' });
   try{ await apiPost({ name: state.solo.name, points: state.solo.score }); loadScores(); }catch(e){}
 }
+function exitSoloRound(){
+  if(!confirm("Exit this quiz? Since it isn't finished, your points won't be saved.")) return;
+  setState({ screen:'home' });
+}
 
 /* ============================= GROUP FLOW ============================= */
 function startGroupSetup(catId, duration){
@@ -367,6 +375,11 @@ function groupNext(){
   } else {
     setState({ group:{ ...g, idx:nextIdx, answered:false, picked:null } });
   }
+}
+function exitGroupRound(){
+  if(!confirm('End this round early? Progress will be lost.')) return;
+  clearInterval(state.group.timerId);
+  setState({ screen:'home', group:{ ...state.group, timerId:null } });
 }
 
 /* ============================= RENDER ============================= */
@@ -433,13 +446,15 @@ function screenHome(){
     ${state.error ? `<div class="banner" style="margin-top:20px;">${state.error}</div>` : ''}
     <div class="section-label">CHOOSE A MODE</div>
     <div class="cat-grid modes">
-      <button class="cat-card" style="--card-color:var(--solo);--card-ink:var(--solo-ink);" onclick="setState({screen:'solo-setup'})">
+      <button class="cat-card mode-card" onclick="setState({screen:'solo-setup'})">
         <span class="emoji">🎯</span>
         <span><span class="name">SOLO QUIZ</span><br/><span class="count">Multiple choice · tracks your points</span></span>
+        <span class="mode-arrow">→</span>
       </button>
-      <button class="cat-card" style="--card-color:var(--group);--card-ink:var(--group-ink);" onclick="setState({screen:'group-setup'})">
+      <button class="cat-card mode-card" onclick="setState({screen:'group-setup'})">
         <span class="emoji">📱</span>
         <span><span class="name">GROUP PASS &amp; PLAY</span><br/><span class="count">Timed round, pass the phone</span></span>
+        <span class="mode-arrow">→</span>
       </button>
     </div>
     <div class="home-foot">
@@ -455,8 +470,11 @@ function catCardsMarkup(selectedId, onclickFn){
   const cards = [ALL_CAT, ...CATEGORIES];
   return `<div class="cat-grid">` + cards.map(c=>{
     const sel = selectedId === c.id;
-    const count = c.id==='all' ? state.questions.length : state.questions.filter(q=>q.category===c.name).length;
-    return `<button class="cat-card${sel?' selected':''}" style="--card-color:var(${c.color});--card-ink:var(${c.ink});" onclick="${onclickFn}('${c.id}')">
+    const isAll = c.id==='all';
+    const count = isAll ? state.questions.length : state.questions.filter(q=>q.category===c.name).length;
+    const cls = `cat-card${sel?' selected':''}${isAll?' special':''}`;
+    const style = isAll ? '' : ` style="--card-color:var(${c.color});--card-ink:var(${c.ink});"`;
+    return `<button class="${cls}"${style} onclick="${onclickFn}('${c.id}')">
       <span class="emoji">${c.emoji}</span>
       <span><span class="name">${esc(c.name)}</span><br/><span class="count">${count} questions</span></span>
     </button>`;
@@ -521,7 +539,10 @@ function screenSoloPlay(){
   const answers = buildAnswers(q);
   return el(`<div class="play-screen">
     <div class="play-top">
-      <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="exit-btn" onclick="exitSoloRound()" aria-label="Exit quiz">✕</button>
+        <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
+      </div>
       <div class="score-strip" style="padding:0;"><b>${s.score}</b> pt${s.score===1?'':'s'}</div>
     </div>
     <div class="timer-wrap"><div class="timer">${esc(s.name).toUpperCase()} · ${s.idx+1} / ${s.queue.length}</div></div>
@@ -566,7 +587,7 @@ function screenSoloResult(){
 }
 
 function screenGroupSetup(){
-  applyTheme('--group','--group-ink');
+  applyTheme('--all','--all-ink');
   const durations = [60,90,120];
   const catId = state.group.catId, dur = state.group.duration;
   return el(`<div class="screen">
@@ -610,7 +631,10 @@ function screenGroupPlay(){
   const urgent = g.timeLeft <= 10;
   return el(`<div class="play-screen">
     <div class="play-top">
-      <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="exit-btn" onclick="exitGroupRound()" aria-label="End round">✕</button>
+        <div class="play-cat"><span class="dot"></span>${esc(q.category).toUpperCase()}</div>
+      </div>
       <div class="score-strip" style="padding:0;"><b>${g.score}</b> correct</div>
     </div>
     <div class="timer-wrap"><div class="timer${urgent?' urgent':''}">0:${g.timeLeft<10?'0':''}${g.timeLeft}</div></div>
